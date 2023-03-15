@@ -1,0 +1,4 @@
+因為有include一些東西，像cbitvector.h
+所以還是要跟 hmac_sha1/ 一樣放到 ABY/src/examples/ 裡，
+examples/CMakeList 一樣要加上 add_subdirectory(NO_aby_hmac_sha1)
+make完後只要 ./NO_aby_hmac_sha1_test 就可以執行了，不要帶參數。
