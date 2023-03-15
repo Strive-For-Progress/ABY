@@ -1,3 +1,0 @@
-
-add_executable(NO_aby_hmac_sha1_test NO_aby_hmac_sha1_test.cpp common/NO_aby_hmac_sha1_circuit.cpp)
-target_link_libraries(NO_aby_hmac_sha1_test ABY::aby ENCRYPTO_utils::encrypto_utils)
