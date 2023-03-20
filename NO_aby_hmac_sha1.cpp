@@ -341,4 +341,3 @@ void sha1_main_loop(uint32_t* h, uint32_t* w) {
 	h[3] = (h[3] + d) & 0xFFFFFFFF;
 	h[4] = (h[4] + e) & 0xFFFFFFFF;
 }
-
