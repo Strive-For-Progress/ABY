@@ -29,5 +29,5 @@ int main() {
         str.append("00");
     }
     cout << str.append( to_zero_lead(stream.str(), 64/4)) << endl;
-    cout << str.length()*4/512 <<endl;
+    cout <<"process block " <<str.length()*4/512 << " times"<<endl;
 }
