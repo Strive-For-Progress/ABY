@@ -60,7 +60,7 @@ int main() {
     struct timespec start, end;
     clock_gettime(CLOCK_MONOTONIC, &start);
 
-	uint32_t sha1bits_per_party = ABY_SHA1_INPUT_BITS/2;
+    uint32_t sha1bits_per_party = ABY_SHA1_INPUT_BITS/2;
 	uint32_t sha1bytes_per_party = sha1bits_per_party/8;
 
 
@@ -93,15 +93,12 @@ int main() {
     char *End = nullptr;
     uint32_t  n = 128*2;
     char s[3] = {0};
-
+	// 2 hex number represent a byte stored in msgC
     for (int i=0 ; i<n ; i+=2) {
 		strncpy(s,str+i,2);
 		msgC[i/2] = strtol(s, &End, base);
 	}	
-
-
-
-
+	// 3rd argument need to be assign, it means how many times we need to do process_block
 	BuildHMACSHA1Circuit(msgSi, msgSo, msgC, 2, plain_out);
 
 
