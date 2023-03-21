@@ -34,7 +34,7 @@ const uint32_t ABY_SHA1_K2 = 0x8F1BBCDC;
 const uint32_t ABY_SHA1_K3 = 0xCA62C1D6;
 
 
-void BuildHMACSHA1Circuit(uint8_t* msgSi, uint8_t* msgSo, uint8_t* msgC, uint8_t* int_out);
+void BuildHMACSHA1Circuit(uint8_t* msgSi, uint8_t* msgSo, uint8_t* msgC, uint32_t lenC, uint8_t* int_out);
 void process_block(uint8_t* msg, uint8_t* tmp_int_out, uint32_t* h);
 void init_variables(uint32_t* h);
 void break_message_to_chunks(uint32_t* w, uint8_t* msg);
@@ -69,7 +69,7 @@ int main() {
     uint8_t* msgS = (uint8_t*) malloc(ABY_SHA1_INPUT_BYTES);
     uint8_t* msgSi = (uint8_t*) malloc(ABY_SHA1_INPUT_BYTES);
     uint8_t* msgSo = (uint8_t*) malloc(ABY_SHA1_INPUT_BYTES);
-    uint8_t* msgC = (uint8_t*) malloc(ABY_SHA1_INPUT_BYTES);
+    
 
 
     // Input (key -> key_xoripad, key_xor_opad)
@@ -85,28 +85,38 @@ int main() {
             msgSo[i] = 0x5c;
         }
 	}
-    // Input (msg)
-    for(uint32_t i = 0; i < sha1bytes_per_party; i++) {
-        if(i == 0) {
-            msgC[i] = 0xef;
-        } else {
-            msgC[i] = 0x00;
-        }
-	}
+    // Input (msg and the padding len is "keyi + msg")
 
-	BuildHMACSHA1Circuit(msgSi, msgSo, msgC, plain_out);
+	int base = 16;
+	uint8_t* msgC = (uint8_t*) malloc(128*3);
+    char str[520] ="ab000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000380000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003f8";
+    char *End = nullptr;
+    uint32_t  n = 128*2;
+    char s[3] = {0};
+
+    for (int i=0 ; i<n ; i+=2) {
+		strncpy(s,str+i,2);
+		msgC[i/2] = strtol(s, &End, base);
+	}	
+
+
+
+
+	BuildHMACSHA1Circuit(msgSi, msgSo, msgC, 2, plain_out);
 
 
     // output
 	cout << "Testing HMACSHA1 " << endl;
 
+	cout << "Msg     : ";
+	for(int i = 0; i < 128 ; i++) printf("%02x",msgC[i]);
+	cout << "\n\n";
+	
 	cout << "Key     : ";
 	for(int i = 0; i < 64 ; i++) printf("%02x",msgS[i]);
 	cout << "\n\n";	
 
-    cout << "Msg     : ";
-	for(int i = 0; i < 64 ; i++) printf("%02x",msgC[i]);
-	cout << "\n\n";
+
 
 	cout << "Hmacsha1: ";
 	for(int i = 0; i < 20 ; i++) printf("%02x",plain_out[i]);
@@ -119,7 +129,7 @@ int main() {
 }
 
 /* Steps are taken from the wikipedia article on SHA1 */
-void BuildHMACSHA1Circuit(uint8_t* msgSi, uint8_t* msgSo, uint8_t* msgC, uint8_t* plain_out) {
+void BuildHMACSHA1Circuit(uint8_t* msgSi, uint8_t* msgSo, uint8_t* msgC, uint32_t lenC, uint8_t* plain_out) {
 
 	uint32_t party_in_bitlen = ABY_SHA1_INPUT_BITS/2;
 	uint32_t party_in_bytelen = ABY_SHA1_INPUT_BYTES/2;
@@ -143,28 +153,15 @@ void BuildHMACSHA1Circuit(uint8_t* msgSi, uint8_t* msgSo, uint8_t* msgC, uint8_t
 
 
 	/*
-	 * Process this(second) message block
+	 * Process this(second) message block which contains padding
 	 */
-	memcpy(msg, msgC, party_in_bytelen);
-	process_block(msg, tmp_plain_out, h);
-
-	/*
-	 * Do the final SHA1 Result computation.
-	 * TODO: The remaining block should be padded and processed here. However, since the
-	 * input bit length is fixed to 512 bit, the padding is constant.
-	 */
-
-	for(uint32_t i = 0; i < 64; i++) {
-		if(i == 0) {
-			msg[0] = 0x80;
-		} else if (i == 62) {
-			msg[62] = 0x04;
-		} else {
-			msg[i] = 0;
-		}
+	for (int i=0 ; i<lenC ; i++) {
+		memcpy(msg, msgC+64*i, party_in_bytelen);
+		process_block(msg, tmp_plain_out, h);		
 	}
-	process_block(msg, tmp_plain_out, h);
+
 	memcpy(first_sha1_plain_out, tmp_plain_out, ABY_SHA1_OUTPUT_BYTES);
+
 
 	// 2nd sha1
 	init_variables(h);
