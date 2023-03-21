@@ -61,7 +61,7 @@ int main() {
     clock_gettime(CLOCK_MONOTONIC, &start);
 
     uint32_t sha1bits_per_party = ABY_SHA1_INPUT_BITS/2;
-	uint32_t sha1bytes_per_party = sha1bits_per_party/8;
+    uint32_t sha1bytes_per_party = sha1bits_per_party/8;
 
 
 	//The plaintext output computation will only be done once instead of nvals times!
